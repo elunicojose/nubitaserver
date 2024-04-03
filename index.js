@@ -13,9 +13,9 @@ app.use(express.json());
 app.use(cors());
 
 let arrFrutas = Object.values(frutas);
-//console.log(arrFrutas)
+
 let arrMixes = Object.values(mixes);
-//console.log(arrMixes)
+
 
 const handleSaveData = (data, fileName) => {
   console.log("Saving DATA= ", data);
