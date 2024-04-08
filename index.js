@@ -41,7 +41,7 @@ app.get("/api/frutas", (req, res) => {
 });
 
 app.get("/api/mixes", (req, res) => {
-  // TO DO
+  res.send("<h1>Mixes!</h1>")
 });
 
 
