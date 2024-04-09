@@ -19,7 +19,7 @@ app.get("/api/frutas", (req, res) => {
     const connection = await mysql.createConnection({
       host: process.env.host || "http://localhost",
       port: 3306,
-      database: "nubitamix",
+      database: "brhtiwji8gfuvzjetgyo",
       user: process.env.user || "root",
       password: process.env.password || "rootpass",
       ssl: {
