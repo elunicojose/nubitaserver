@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 app.get("/api/frutas", (req, res) => {
   console.log("en local app get...");
   async function getFrutas() {
-    console.log("en remote app get...");
+    console.log("en remote app get...host= " + process.env.host + ", user= " + process.env.user);
     // Create the connection to database
     const connection = await mysql.createConnection({
       host: process.env.host || "http://localhost",
