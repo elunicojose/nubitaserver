@@ -42,6 +42,8 @@ app.get("/", (req, res) => {
   res.send("<h1>Nubita!</h1>")
 })
 
+
+/****INICIO FRUTAS****/
 app.get("/api/frutas", async (req, res) => {
   console.log("en server local app get frutas nuevo...");
   try {
@@ -148,35 +150,25 @@ app.delete("/api/deleteFruta/:id", async (req, res) => {
 });
 
 
-app.get("/api/mixes", (req, res) => {
-  console.log("en server local app get mixes...");
-  async function getMixes() {
-    console.log("en remote app get...host= " + process.env.host + ", user= " + process.env.user);
-    // Create the connection to database
-    const connection = await mysql.createConnection({
-      host: process.env.host || "http://localhost",
-      port: 3306,
-      database: process.env.database || "nubitamix",
-      user: process.env.user || "root",
-      password: process.env.password || "rootpass",
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    });
+/****INICIO MIXES****/
+app.get("/api/mixes", async (req, res) => {
+  console.log("en server local app get MIXES nuevo...");
+  try {
+    // Conectar a la base de datos
+    const connection = await connectToDatabase();
 
-    // A simple SELECT query
-    try {
-      const [result, fields] = await connection.query("SELECT * FROM `mixes`");
-      console.log("result: ", result); // results contains rows returned by server
-      res.set('Access-Control-Allow-Origin', '*');
-      res.json(result);
-    } catch (err) {
-      console.log(err);
-    }
+    const [result] = await connection.query("SELECT * FROM `mixes`");
+
+    // Cerrar la conexión
+    await connection.end();
+
+    console.log("result: ", result); // results contains rows returned by server
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al traer mixes", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
-  getMixes();
 });
-
 
 
 app.listen(PORT, () => {
