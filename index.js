@@ -151,6 +151,7 @@ async function handleEditData(fruta) {
   }
 }
 
+
 app.delete("/api/deleteFruta/:id", async (req, res) => {
   const idDelete = parseInt(req.params.id);
   console.log("Borrando: " + idDelete);
@@ -173,6 +174,7 @@ app.delete("/api/deleteFruta/:id", async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
+
 
 /****INICIO MIXES****/
 app.get("/api/mixes", async (req, res) => {
@@ -300,6 +302,43 @@ values (3, 1, gramos, (gramos * (select total from frutas f where f.idFruta = id
 
   //res.status(201).json({ message: 'Mix de frutas agregado exitosamente' });
 });
+
+
+app.delete("/api/deleteMix/:idMix", async (req, res) => {
+  const idMix = parseInt(req.params.idMix);
+  console.log("Borrando mix: " + idMix);
+  try {
+    // Conectar a la base de datos
+    const connection = await connectToDatabase();
+
+    await connection.beginTransaction();
+
+    // Borrar los detalles primero
+    const deleteMixDetailQuery = 'DELETE FROM mix_fruta WHERE id_mix = ?';
+    await connection.query(deleteMixDetailQuery, [idMix]);
+
+    // Borrar el mix
+    const deleteMixQuery = 'DELETE FROM mixes WHERE idmix = ?';
+    const [result] = await connection.query(deleteMixQuery, [idMix]);
+
+    await connection.commit();
+
+    if (result.affectedRows > 0) {
+      console.log('Mix borrado exitosamente')
+        res.status(200).send({ message: 'Mix borrado exitosamente.' });
+    } else {
+        console.log('No se encontró mix')
+        res.status(404).send({ message: 'No se encontró mix.' });
+    }
+
+    //res.status(200).json({ message: "Elemento eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar el elemento:", error);
+    await connection.rollback();
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
