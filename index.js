@@ -97,8 +97,7 @@ async function handleAddData(fruta) {
   const connection = await connectToDatabase();
   // insert fruta info
   try {
-    var sql =
-      "INSERT INTO frutas(nombre, costo, flete, total) VALUES (?, ?, ?, ?)";
+    var sql ="INSERT INTO frutas(nombre, costo, flete, total) VALUES (?, ?, ?, ?)";
     connection.query(
       sql,
       [fruta.nombre, fruta.costo, fruta.flete, fruta.total],
@@ -338,6 +337,96 @@ app.delete("/api/deleteMix/:idMix", async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
+
+
+
+/*
+async function handleUpdateGcia(mix) {
+  console.log( "editar gcia= " + mix.id + ", pct= " + mix.pct );
+  const connection = await connectToDatabase();
+  // update mix total ganancia
+  try {
+    var sql =
+      "UPDATE frutas SET nombre=?, costo=?, flete=?, total=? WHERE idfrutas = ?";
+    connection.query(
+      sql,
+      [fruta.nombre, fruta.costo, fruta.flete, fruta.total, fruta.id],
+      (err, result) => {
+        if (err) {
+          throw err;
+        }
+        console.log("Fruta modificada!" + result);
+      }
+    );
+    await connection.end();
+    return 200;
+  } catch (err) {
+    console.log(err);
+    return 500;
+  }
+}*/
+
+// Función para obtener la sumatoria de los costos desde la tabla mix_fruta
+const obtenerSumatoriaCostos = async (id_mix) => {
+  console.log('obtenerSumatoriaCostos, recibido mix= ', id_mix)
+  const connection = await connectToDatabase();
+  const query = `SELECT SUM(costo) AS total_costos FROM mix_fruta WHERE id_mix = ?`;
+   
+  const [results] = await connection.query(query, [id_mix])
+  const totalCostos = results[0].total_costos || 0; // Si no hay resultado, devolvemos 0
+
+  console.log('totalCostos==> ', totalCostos)
+  return totalCostos;
+};
+
+// Función para actualizar la tabla mix con el porcentaje y total con porcentaje
+const actualizarTablaMix = async (id, pct, total_con_porcentaje) => {
+    const query = `UPDATE mixes SET pct = ?, total_con_ganancia = ? WHERE idmix = ?`;
+    const connection = await connectToDatabase();
+    await connection.query(query, [pct, total_con_porcentaje, id], (error, results) => {
+      if (error) {
+        return error;
+      }
+      return results;
+    });
+};
+
+app.post("/api/updateGcia", async (req, res) => {
+  console.log(req.body);
+  const { id, pct } = req.body;
+    //total: (parseFloat(req.body.costo) + parseFloat(req.body.flete)).toFixed(2),
+  if (!id || !pct) {
+    return res.status(400).send('Debe enviar un idmix y porcentaje de ganancia.');
+  }
+  /*let operationStatus = await handleUpdateGcia(updateMix);
+  console.log("resultado operacion: " + operationStatus);
+  res.status(operationStatus).json(req.body);*/
+
+  try {
+    // 1. Obtener la sumatoria de los costos de la tabla mix_fruta basada en el id_mix
+    const sumatoriaCostos = await obtenerSumatoriaCostos(id);
+    console.log('sum= ', sumatoriaCostos)
+
+    // 2. Aplicar el porcentaje
+    const totalConPorcentaje = sumatoriaCostos * ( 1 + (pct / 100));
+    console.log('total= ', totalConPorcentaje)
+
+    // 3. Actualizar la tabla mix con el porcentaje y el total con porcentaje
+    await actualizarTablaMix(id, pct, totalConPorcentaje);
+
+    // 4. Enviar una respuesta de éxito al cliente
+    res.status(200).json({
+      mensaje: 'El cálculo y la actualización se realizaron correctamente',
+      id,
+      pct,
+      total_con_porcentaje: totalConPorcentaje
+    });
+  } catch (error) {
+    console.error('Error en el proceso:', error);
+    res.status(500).send('Ocurrió un error al procesar la solicitud.');
+  }
+});
+
 
 
 app.listen(PORT, () => {
