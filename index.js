@@ -63,13 +63,21 @@ app.get("/api/frutas", async (req, res) => {
 });
 
 app.post("/api/addFruta", async (req, res) => {
-  console.log(req.body);
+  console.log('body= ', req.body);
   var fruta = {
     id: req.body.id,
     nombre: req.body.nombre,
     costo: req.body.costo,
     flete: req.body.flete,
-    total: (parseFloat(req.body.costo) + parseFloat(req.body.flete)).toFixed(2),
+    bolsa: req.body.bolsa,
+    etiquetas: req.body.etiquetas,
+    caja: req.body.caja,
+    cinta: req.body.cinta,
+    varios: req.body.varios,
+    total: (parseFloat(req.body.costo) + parseFloat(req.body.flete)
+    + parseFloat(req.body.bolsa) + parseFloat(req.body.etiquetas)
+    + parseFloat(req.body.caja) + parseFloat(req.body.cinta)
+    + parseFloat(req.body.varios)).toFixed(2) 
   };
 
   let operationStatus = 200;
@@ -85,22 +93,34 @@ app.post("/api/addFruta", async (req, res) => {
 
 async function handleAddData(fruta) {
   console.log(
-    "guardar fruta= " +
-      fruta.nombre +
-      ", costo= " +
-      fruta.costo +
-      ", flete= " +
-      fruta.flete +
-      ", total= " +
-      fruta.total
+    "guardar fruta= " + fruta.nombre 
+    + ", costo= " + fruta.costo 
+    + ", flete= " + fruta.flete
+    
+    + ", bolsa= " + fruta.bolsa 
+    + ", etiquetas= " + fruta.etiquetas 
+    + ", caja= " + fruta.caja 
+    + ", cinta= " + fruta.cinta 
+    + ", varios= " + fruta.varios 
+    
+    + ", total= " + fruta.total
   );
+  const costo = fruta.costo !== undefined ? fruta.costo : 0;
+  const flete = fruta.flete !== undefined ? fruta.flete : 0;
+  const bolsa = fruta.bolsa !== undefined ? fruta.bolsa : 0;
+  const etiquetas = fruta.etiquetas !== undefined ? fruta.etiquetas : 0;
+  const caja = fruta.caja !== undefined ? fruta.caja : 0;
+  const cinta = fruta.cinta !== undefined ? fruta.cinta : 0;
+  const varios = fruta.varios !== undefined ? fruta.varios : 0;
+
   const connection = await connectToDatabase();
   // insert fruta info
   try {
-    var sql ="INSERT INTO frutas(nombre, costo, flete, total) VALUES (?, ?, ?, ?)";
+    var sql ="INSERT INTO frutas(nombre, costo, flete, bolsa, etiquetas, caja, cinta, varios, total)"
+    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     connection.query(
       sql,
-      [fruta.nombre, fruta.costo, fruta.flete, fruta.total],
+      [fruta.nombre, costo, flete, bolsa, etiquetas, caja, cinta, varios, fruta.total],
       (err, result) => {
         if (err) {
           throw err;
@@ -118,23 +138,34 @@ async function handleAddData(fruta) {
 
 async function handleEditData(fruta) {
   console.log(
-    "editar fruta= " +
-      fruta.nombre +
-      ", costo= " +
-      fruta.costo +
-      ", flete= " +
-      fruta.flete +
-      ", total= " +
-      fruta.total
+    "editar fruta= " + fruta.nombre 
+    + ", costo= " + fruta.costo 
+    + ", flete= " + fruta.flete
+    + ", bolsa= " + fruta.bolsa 
+    + ", etiquetas= " + fruta.etiquetas 
+    + ", caja= " + fruta.caja 
+    + ", cinta= " + fruta.cinta 
+    + ", varios= " + fruta.varios 
+    + ", total= " + fruta.total
   );
+
+  const costo = fruta.costo !== undefined ? fruta.costo : 0;
+  const flete = fruta.flete !== undefined ? fruta.flete : 0;
+  const bolsa = fruta.bolsa !== undefined ? fruta.bolsa : 0;
+  const etiquetas = fruta.etiquetas !== undefined ? fruta.etiquetas : 0;
+  const caja = fruta.caja !== undefined ? fruta.caja : 0;
+  const cinta = fruta.cinta !== undefined ? fruta.cinta : 0;
+  const varios = fruta.varios !== undefined ? fruta.varios : 0;
+
   const connection = await connectToDatabase();
   // update fruta info
   try {
     var sql =
-      "UPDATE frutas SET nombre=?, costo=?, flete=?, total=? WHERE idfrutas = ?";
+      "UPDATE frutas SET nombre=?, costo=?, flete=?, bolsa=?, "
+      + "etiquetas=?, caja=?, cinta=?, varios=?, total=? WHERE idfrutas = ?";
     connection.query(
       sql,
-      [fruta.nombre, fruta.costo, fruta.flete, fruta.total, fruta.id],
+      [fruta.nombre, costo, flete, bolsa, etiquetas, caja, cinta, varios, fruta.total, fruta.id],
       (err, result) => {
         if (err) {
           throw err;
@@ -149,7 +180,6 @@ async function handleEditData(fruta) {
     return 500;
   }
 }
-
 
 app.delete("/api/deleteFruta/:id", async (req, res) => {
   const idDelete = parseInt(req.params.id);
@@ -173,7 +203,6 @@ app.delete("/api/deleteFruta/:id", async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
-
 
 /****INICIO MIXES****/
 app.get("/api/mixes", async (req, res) => {
